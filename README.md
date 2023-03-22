@@ -1,87 +1,87 @@
-# Evals
+# evaluaciones
 
-Evals is a framework for evaluating OpenAI models and an open-source registry of benchmarks.
+Evals es un marco para evaluar modelos OpenAI y un registro de puntos de referencia de código abierto.
 
-You can use Evals to create and run evaluations that:
-- use datasets to generate prompts,
-- measure the quality of completions provided by an OpenAI model, and
-- compare performance across different datasets and models.
+Puede usar Evals para crear y ejecutar evaluaciones que:
+- usar conjuntos de datos para generar avisos,
+- medir la calidad de las terminaciones proporcionadas por un modelo OpenAI, y
+- comparar el rendimiento en diferentes conjuntos de datos y modelos.
 
-With Evals, we aim to make it as simple as possible to build an eval while writing as little code as possible. To get started, we recommend that you follow these steps **in order**:
-1. Read through this doc and follow the [setup instructions below](README.md#Setup).
-2. Learn how to run existing evals: [run-evals.md](docs/run-evals.md).
-3. Familiarize yourself with the existing eval templates: [eval-templates.md](docs/eval-templates.md).
-4. Walk through the process for building an eval: [build-eval.md](docs/build-eval.md)
-5. See an example of implementing custom eval logic: [custom-eval.md](docs/custom-eval.md).
+Con Evals, nuestro objetivo es hacer que sea lo más simple posible construir una evaluación mientras se escribe la menor cantidad de código posible. Para comenzar, le recomendamos que siga estos pasos **en orden**:
+1. Lea este documento y siga las [instrucciones de configuración a continuación] (README.md#Setup).
+2. Aprenda a ejecutar evaluaciones existentes: [run-evals.md](docs/run-evals.md).
+3. Familiarícese con las plantillas de evaluación existentes: [eval-templates.md](docs/eval-templates.md).
+4. Siga el proceso para crear una evaluación: [build-eval.md](docs/build-eval.md)
+5. Vea un ejemplo de implementación de lógica de evaluación personalizada: [custom-eval.md](docs/custom-eval.md).
 
-If you think you have an interesting eval, please open a PR with your contribution. OpenAI staff actively review these evals when considering improvements to upcoming models.
+Si cree que tiene una evaluación interesante, abra un PR con su contribución. El personal de OpenAI revisa activamente estas evaluaciones al considerar mejoras para los próximos modelos.
 
 ____________________
-🚨 For a limited time, we will be granting GPT-4 access to those who contribute high quality evals. Please follow the instructions mentioned above and note that spam or low quality submissions will be ignored❗️
+🚨 Por tiempo limitado, otorgaremos acceso a GPT-4 a quienes contribuyan con evaluaciones de alta calidad. Siga las instrucciones mencionadas anteriormente y tenga en cuenta que se ignorarán los envíos de spam o de baja calidad❗️
 
-Access will be granted to the email address associated with an accepted Eval. Due to high volume, we are unable to grant access to any email other than the one used for the pull request.
+Se otorgará acceso a la dirección de correo electrónico asociada con una evaluación aceptada. Debido al gran volumen, no podemos otorgar acceso a ningún correo electrónico que no sea el utilizado para la solicitud de extracción.
 ____________________
 
-## Setup
+## Configuración
 
-To run evals, you will need to set up and specify your OpenAI API key. You can generate one at <https://platform.openai.com/account/api-keys>. After you obtain an API key, specify it using the `OPENAI_API_KEY` environment variable. **Please be aware of the [costs](https://openai.com/pricing) associated with using the API when running evals.**
+Para ejecutar evaluaciones, deberá configurar y especificar su clave API de OpenAI. Puede generar uno en <https://platform.openai.com/account/api-keys>. Después de obtener una clave API, especifíquela usando la variable de entorno `OPENAI_API_KEY`. **Tenga en cuenta los [costos](https://openai.com/pricing) asociados con el uso de la API al ejecutar evaluaciones.**
 
-**Minimal Required Version: Python 3.9**
+**Versión mínima requerida: Python 3.9**
 
-### Downloading evals
+### Descargando evaluaciones
 
-Our Evals registry is stored using [Git-LFS](https://git-lfs.com/). Once you have downloaded and installed LFS, you can fetch the evals with:
+Nuestro registro Evals se almacena mediante [Git-LFS](https://git-lfs.com/). Una vez que haya descargado e instalado LFS, puede obtener las evaluaciones con:
 ```sh
-git lfs fetch --all
-git lfs pull
+git lfs buscar --todos
+tirar de git lfs
 ```
 
-You may just want to fetch data for a select eval. You can achieve this via:
+Es posible que solo desee obtener datos para una evaluación seleccionada. Puede lograr esto a través de:
 ```sh
-git lfs fetch --include=evals/registry/data/${your eval}
-git lfs pull
+git lfs fetch --include=evals/registry/data/${tu evaluación}
+tirar de git lfs
 ```
 
-### Making evals
+### Haciendo evaluaciones
 
-If you are going to be creating evals, we suggest cloning this repo directly from GitHub and installing the requirements using the following command:
-
-```sh
-pip install -e .
-```
-
-Using `-e`, changes you make to your eval will be reflected immediately without having to reinstall.
-
-### Running evals
-
-If you don't want to contribute new evals, but simply want to run them locally, you can install the evals package via pip:
+Si va a crear evaluaciones, le sugerimos que clone este repositorio directamente desde GitHub e instale los requisitos con el siguiente comando:
 
 ```sh
-pip install evals
+pip instalar -e.
 ```
 
-We provide the option for you to log your eval results to a Snowflake database, if you have one or wish to set one up. For this option, you will further have to specify the `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_DATABASE`, `SNOWFLAKE_USERNAME`, and `SNOWFLAKE_PASSWORD` environment variables.
+Usando `-e`, los cambios que realice en su evaluación se reflejarán inmediatamente sin tener que volver a instalar.
 
-## FAQ
+### Ejecutando evaluaciones
 
-Do you have any examples of how to build an eval from start to finish?
+Si no desea contribuir con nuevas evaluaciones, sino simplemente ejecutarlas localmente, puede instalar el paquete de evaluaciones a través de pip:
 
-- Yes! These are in the `examples` folder. We recommend that you also read through [build-eval.md](docs/build-eval.md) in order to gain a deeper understanding of what is happening in these examples.
+```sh
+evaluaciones de instalación de pip
+```
 
-Do you have any examples of evals implemented in multiple different ways?
+Le brindamos la opción de registrar los resultados de su evaluación en una base de datos de Snowflake, si tiene una o desea configurar una. Para esta opción, deberá especificar además las variables de entorno `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_DATABASE`, `SNOWFLAKE_USERNAME` y `SNOWFLAKE_PASSWORD`.
 
-- Yes! In particular, see `evals/registry/evals/coqa.yaml`. We have implemented small subsets of the [CoQA](https://stanfordnlp.github.io/coqa/) dataset for various eval templates to help illustrate the differences.
+## PREGUNTAS MÁS FRECUENTES
 
-When I run an eval, it sometimes hangs at the very end (after the final report). What's going on?
+¿Tiene algún ejemplo de cómo construir una evaluación de principio a fin?
 
-- This is a known issue, but you should be able to interrupt it safely and the eval should finish immediately after.
+- ¡Sí! Estos están en la carpeta `examples`. Le recomendamos que también lea [build-eval.md](docs/build-eval.md) para obtener una comprensión más profunda de lo que sucede en estos ejemplos.
 
-There's a lot of code, and I just want to spin up a quick eval. Help? OR,
+¿Tiene algún ejemplo de evaluaciones implementadas de múltiples maneras diferentes?
 
-I am a world-class prompt engineer. I choose not to code. How can I contribute my wisdom?
+- ¡Sí! En particular, consulte `evals/registry/evals/coqa.yaml`. Hemos implementado pequeños subconjuntos del conjunto de datos [CoQA](https://stanfordnlp.github.io/coqa/) para varias plantillas de evaluación para ayudar a ilustrar las diferencias.
 
-- If you follow an existing [eval template](docs/eval-templates.md) to build a basic or model-graded eval, you don't need to write any evaluation code at all! Just provide your data in JSON format and specify your eval parameters in YAML. [build-eval.md](docs/build-eval.md) walks you through these steps, and you can supplement these instructions with the Jupyter notebooks in the `examples` folder to help you get started quickly. Keep in mind, though, that a good eval will inevitably require careful thought and rigorous experimentation!
+Cuando ejecuto una evaluación, a veces se cuelga al final (después del informe final). ¿Qué está sucediendo?
 
-## Disclaimer
+- Este es un problema conocido, pero debería poder interrumpirlo de manera segura y la evaluación debería finalizar inmediatamente después.
 
-By contributing to Evals, you are agreeing to make your evaluation logic and data under the same MIT license as this repository. You must have adequate rights to upload any data used in an Eval. OpenAI reserves the right to use this data in future service improvements to our product. Contributions to OpenAI Evals will be subject to our usual Usage Policies: https://platform.openai.com/docs/usage-policies.
+Hay mucho código y solo quiero hacer una evaluación rápida. ¿Ayuda? O,
+
+Soy un ingeniero rápido de clase mundial. Elijo no codificar. ¿Cómo puedo aportar mi sabiduría?
+
+- Si sigue una [plantilla de evaluación] existente (docs/eval-templates.md) para crear una evaluación básica o graduada por modelo, ¡no necesita escribir ningún código de evaluación! Simplemente proporcione sus datos en formato JSON y especifique sus parámetros de evaluación en YAML. [build-eval.md](docs/build-eval.md) lo guía a través de estos pasos, y puede complementar estas instrucciones con los cuadernos de Jupyter Notebook en la carpeta `examples` para ayudarlo a comenzar rápidamente. Sin embargo, tenga en cuenta que una buena evaluación inevitablemente requerirá una reflexión cuidadosa y una experimentación rigurosa.
+
+## Descargo de responsabilidad
+
+Al contribuir con Evals, usted acepta que la lógica y los datos de su evaluación estén bajo la misma licencia del MIT que este repositorio. Debe tener los derechos adecuados para cargar cualquier dato utilizado en una evaluación. OpenAI se reserva el derecho de utilizar estos datos en futuras mejoras de servicio de nuestro producto. Las contribuciones a OpenAI Evals estarán sujetas a nuestras Políticas de uso habituales: https://platform.openai.com/docs/usage-pol
