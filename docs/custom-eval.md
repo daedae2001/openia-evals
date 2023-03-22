@@ -1,32 +1,31 @@
-# How to add a custom eval
+# Cómo agregar una evaluación personalizada
 
-This tutorial will walk you through a simple example of writing and adding a custom eval. The example eval will test the model's ability to do basic arithmetic. We will assume that you have followed the setup instructions in the [README](../README.md) and gone through the other docs for how to run and build evals.
+Este tutorial lo guiará a través de un ejemplo simple de cómo escribir y agregar una evaluación personalizada. La evaluación de ejemplo pondrá a prueba la capacidad del modelo para hacer aritmética básica. Asumiremos que siguió las instrucciones de configuración en [README] (../README.md) y revisó los otros documentos sobre cómo ejecutar y compilar evaluaciones.
 
-When writing your own evals, the primary files of interest are:
-- `evals/api.py`, which provides common interfaces and utilities used by eval creators to sample from models and process the results,
-- `evals/record.py`, which defines the recorder classes which log eval results in different ways, such as to a local JSON file or to a remote Snowflake database, and
-- `evals/metrics.py`, which defines various common metrics of interest.
+Al escribir sus propias evaluaciones, los principales archivos de interés son:
+- `evals/api.py`, que proporciona interfaces y utilidades comunes utilizadas por los creadores de evaluaciones para tomar muestras de los modelos y procesar los resultados,
+- `evals/record.py`, que define las clases de registradores que registran los resultados de evaluación de diferentes maneras, como en un archivo JSON local o en una base de datos remota de Snowflake, y
+- `evals/metrics.py`, que define varias métricas comunes de interés.
 
-These files provide a suite of tools for writing new evals. Once you have gone through this tutorial, you can see a more realistic example of these tools in action with the [machine translation](../evals/elsuite/translate.py) [eval example](../examples/lafand-mt.ipynb), which also implements custom eval logic in lieu of using an existing template.
+Estos archivos proporcionan un conjunto de herramientas para escribir nuevas evaluaciones. Una vez que haya seguido este tutorial, podrá ver un ejemplo más realista de estas herramientas en acción con la [traducción automática](../evals/elsuite/translate.py) [eval example](../examples/lafand- mt.ipynb), que también implementa una lógica de evaluación personalizada en lugar de usar una plantilla existente.
 
-## Create your datasets
+## Crea tus conjuntos de datos
 
-The first step is to create the datasets for your eval. Here, we will create toy train and test sets of just two examples each. The test examples are what we will evaluate the model on, and we'll include the train examples as few-shot examples in the prompt to the model.
+El primer paso es crear los conjuntos de datos para su evaluación. Aquí, crearemos trenes de juguete y juegos de prueba de solo dos ejemplos cada uno. Los ejemplos de prueba son en lo que evaluaremos el modelo, e incluiremos los ejemplos de trenes como ejemplos de pocos disparos en el indicador del modelo.
 
-We will use the new chat format described [here](https://platform.openai.com/docs/guides/chat/introduction). By default, we encourage all evals to be written using chat formatting if you want to evaluate our new models. Under the hood, we [convert](../evals/prompt/base.py) chat formatted data into raw strings for older non chat models.
+Usaremos el nuevo formato de chat descrito [aquí](https://platform.openai.com/docs/guides/chat/introduction). De manera predeterminada, recomendamos que todas las evaluaciones se escriban con formato de chat si desea evaluar nuestros nuevos modelos. Bajo el capó, [convertimos] (../evals/prompt/base.py) datos formateados de chat en cadenas sin procesar para modelos más antiguos que no son de chat.
 
-To create the toy datasets, in your terminal, type:
+Para crear los conjuntos de datos de juguetes, en su terminal, escriba:
 ```bash
-echo -e '[{"role": "system", "content": "2+2=", "name": "example_user"}, {"role": "system", "content": "4", "name": "example_assistant"}]\n[{"role": "system", "content": "4*4=", "name": "example_user"}, {"role": "system", "content": "16", "name": "example_assistant"}]' > /tmp/train.jsonl
-echo -e '[{"role": "system", "content": "48+2=", "name": "example_user"}, {"role": "system", "content": "50", "name": "example_assistant"}]\n[{"role": "system", "content": "5*20=", "name": "example_user"}, {"role": "system", "content": "100", "name": "example_assistant"}]' > /tmp/test.jsonl
+echo -e '[{"función": "sistema", "contenido": "2+2=", "nombre": "usuario_ejemplo"}, {"función": "sistema", "contenido": "4" , "nombre": "example_assistant"}]\n[{"función": "sistema", "contenido": "4*4=", "nombre": "ejemplo_usuario"}, {"función": "sistema" , "contenido": "16", "nombre": "example_assistant"}]' > /tmp/train.jsonl
+echo -e '[{"función": "sistema", "contenido": "48+2=", "nombre": "usuario_ejemplo"}, {"función": "sistema", "contenido": "50" , "nombre": "example_assistant"}]\n[{"función": "sistema", "contenido": "5*20=", "nombre": "ejemplo_usuario"}, {"función": "sistema" , "contenido": "100", "nombre": "example_assistant"}]' > /tmp/test.jsonl
 ```
 
-## Create an eval
+## Crear una evaluación
 
-The next step is to write a Python class that represents the actual evaluation. This class uses your datasets to create prompts, which are passed to the model to generate completions. Evaluation classes generally will inherit from the `evals.Eval` base class (defined in `evals/eval.py`) and will override two methods: `eval_sample` and `run`.
+El siguiente paso es escribir una clase de Python que represente la evaluación real. Esta clase usa sus conjuntos de datos para crear indicaciones, que se pasan al modelo para generar finalizaciones. Las clases de evaluación generalmente heredarán de la clase base `evals.Eval` (definida en `evals/eval.py`) y anularán dos métodos: `eval_sample` y `run`.
 
-Let's create a file called `arithmetic.py` under the `evals/elsuite` folder. We'll start by defining the eval class. Its `__init__` method will take in the arguments we need (references to the train and test sets) along with other `kwargs` that will be handled by the base class. We'll also define the `run` method which takes in a `recorder` and returns the final metrics of interest.
-
+Vamos a crear un archivo llamado `arithmetic.py` en la carpeta `evals/elsuite`. Comenzaremos definiendo la clase eval. Su método `__init__` tomará los argumentos que necesitamos (referencias al tren y conjuntos de prueba) junto con otros `kwargs` que serán manejados por la clase base. También definiremos el método `run` que toma un `registrador` y devuelve las métricas finales de interés.
 ```python
 import random
 import textwrap
@@ -55,9 +54,10 @@ class Arithmetic(evals.Eval):
         }
 ```
 
-Generally, most `run` methods will follow the same pattern shown here: loading the data, calling `eval_all_samples`, and aggregating the results (in this case, using the `get_accuracy` function in `evals/metrics.py`). `eval_all_samples` takes in both the `recorder` and the `test_samples` and, under the hood, will call the `eval_sample` method on each sample in `test_samples`. So let's write that `eval_sample` method now:
+En general, la mayoría de los métodos `run` seguirán el mismo patrón que se muestra aquí: cargar los datos, llamar a `eval_all_samples` y agregar los resultados (en este caso, usando la función `get_accuracy` en `evals/metrics.py`). `eval_all_samples` toma tanto `recorder` como `test_samples` y, bajo el capó, llamará al método `eval_sample` en cada muestra en `test_samples`. Así que escribamos ese método `eval_sample` ahora:
 
-```python
+```
+    python
     def eval_sample(self, test_sample, rng: random.Random):
         """
         Called by the `eval_all_samples` method to evaluate a single sample.
@@ -88,51 +88,49 @@ Generally, most `run` methods will follow the same pattern shown here: loading t
 
         evals.check_sampled_text(self.model_spec, prompt, expected=sample["answer"])
 ```
-You'll notice that `eval_sample` doesn't take the `recorder` as an argument. This is because `eval_all_samples` sets it to be the default recorder before calling `eval_sample`, and the recording utilities defined in `evals/record.py` use the default recorder. In this example, the `eval_sample` method passes off a lot of the heavy lifting to the `evals.check_sampled_text` utility function, which is defined in `evals/api.py`. This utility function queries the model, defined by `self.model_spec`, with the given `prompt` and checks to see if the result matches the `expected` answer (or one of them, if given a list). It then records these matches (or non matches) using the default recorder.
+Notarás que `eval_sample` no toma `recorder` como argumento. Esto se debe a que `eval_all_samples` lo establece como el grabador predeterminado antes de llamar a `eval_sample`, y las utilidades de grabación definidas en `evals/record.py` usan el grabador predeterminado. En este ejemplo, el método `eval_sample` transfiere gran parte del trabajo pesado a la función de utilidad `evals.check_sampled_text`, que se define en `evals/api.py`. Esta función de utilidad consulta el modelo, definido por `self.model_spec`, con el `prompt` dado y verifica si el resultado coincide con la respuesta `esperada` (o una de ellas, si se le da una lista). Luego registra estas coincidencias (o no coincidencias) usando la grabadora predeterminada.
 
-`eval_sample` methods may vary greatly based on your use case. If you are building custom evals, it is a good idea to be familiar with the functions available to you in `evals/record.py`, `evals/metrics.py`, and especially `evals/api.py`.
+Los métodos `eval_sample` pueden variar mucho según su caso de uso. Si está creando evaluaciones personalizadas, es una buena idea familiarizarse con las funciones disponibles en `evals/record.py`, `evals/metrics.py` y especialmente `evals/api.py`.
 
-## Register your eval
+## Registre su evaluación
 
-The next step is to register your eval in the registry so that it can be run using the `oaieval` CLI.
+El siguiente paso es registrar su eval en el registro para que pueda ejecutarse utilizando la CLI `oaieval`.
 
-Let's create a file called `arithmetic.yaml` under the `evals/registry/evals` folder and add an entry for our eval as follows:
+Vamos a crear un archivo llamado `arithmetic.yaml` en la carpeta `evals/registry/evals` y agregar una entrada para nuestra evaluación de la siguiente manera:
 
 ```yaml
-# Define a base eval
-arithmetic:
-  # id specifies the eval that this eval is an alias for
-  # in this case, arithmetic is an alias for arithmetic.dev.match-v1
-  # When you run `oaieval davinci arithmetic`, you are actually running `oaieval davinci arithmetic.dev.match-v1`
-  id: arithmetic.dev.match-v1
-  # The metrics that this eval records
-  # The first metric will be considered to be the primary metric
-  metrics: [accuracy]
-  description: Evaluate arithmetic ability
-# Define the eval
-arithmetic.dev.match-v1:
-  # Specify the class name as a dotted path to the module and class
-  class: evals.elsuite.arithmetic:Arithmetic
-  # Specify the arguments as a dictionary of JSONL URIs
-  # These arguments can be anything that you want to pass to the class constructor
-  args:
-    train_jsonl: /tmp/train.jsonl
-    test_jsonl: /tmp/test.jsonl
+# Definir una evaluación base
+aritmética:
+   # id especifica la evaluación para la que esta evaluación es un alias
+   # en este caso, aritmetic es un alias de arithmetic.dev.match-v1
+   # Cuando ejecuta `oaieval davinci arithmetic`, en realidad está ejecutando `oaieval davinci arithmetic.dev.match-v1`
+   id: aritmética.dev.match-v1
+   # Las métricas que registra esta evaluación
+   # La primera métrica se considerará la métrica principal
+   métricas: [precisión]
+   descripción: Evalúa la habilidad aritmética
+# Definir la evaluación
+aritmética.dev.match-v1:
+   # Especifique el nombre de la clase como una ruta punteada al módulo y la clase
+   clase: evals.elsuite.arithmetic:Aritmética
+   # Especificar los argumentos como un diccionario de URI JSONL
+   # Estos argumentos pueden ser cualquier cosa que quieras pasar al constructor de la clase
+   argumentos:
+     tren_jsonl: /tmp/tren.jsonl
+     prueba_jsonl: /tmp/prueba.jsonl
 ```
 
-The `args` field should match the arguments that your eval class `__init__` method expects.
+El campo `args` debe coincidir con los argumentos que espera su método `__init__` de la clase eval.
 
-## Run your eval
+## Ejecute su evaluación
 
-The final step is to run your eval and view the results.
+El paso final es ejecutar su evaluación y ver los resultados.
 
 ```sh
 pip install .  # you can omit this if you used `pip install -e .` to install
 oaieval gpt-3.5-turbo arithmetic
 ```
-
-If you run with the `gpt-3.5-turbo` model, you should see an output similar to this (we have cleaned up the output here slightly for readability):
-
+Si ejecuta el modelo `gpt-3.5-turbo`, debería ver un resultado similar a este (hemos limpiado ligeramente el resultado aquí para facilitar la lectura):
 ```
 % oaieval gpt-3.5-turbo arithmetic
 ... [registry.py:147] Loading registry from .../evals/registry/evals
