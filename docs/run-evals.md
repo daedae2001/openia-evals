@@ -1,37 +1,37 @@
-# How to run evals
+# Cómo ejecutar evaluaciones
 
-We provide two command line interfaces (CLIs): `oaieval` for running a single eval and `oaievalset` for running a set of evals.
+Proporcionamos dos interfaces de línea de comandos (CLI): `oaieval` para ejecutar una única evaluación y `oaievalset` para ejecutar un conjunto de evaluaciones.
 
-## Running an eval
+## Ejecutando una evaluación
 
-When using the `oaieval` command, you will need to provide both the model you wish to evaluate as well as the eval to run. E.g.,
+Cuando utilice el comando `oaieval`, deberá proporcionar tanto el modelo que desea evaluar como la evaluación para ejecutar. P.ej.,
 ```sh
 oaieval gpt-3.5-turbo test-match
 ```
 
-In this example, `gpt-3.5-turbo` is the model to evaluate, and `test-match` is the eval to run. The valid model names are those which you have access to via the API. The valid eval names are specified in the YAML files under `evals/registry/evals`, and their corresponding implementations can be found in `evals/elsuite`.
+En este ejemplo, `gpt-3.5-turbo` es el modelo a evaluar y `test-match` es la evaluación a ejecutar. Los nombres de modelo válidos son aquellos a los que tiene acceso a través de la API. Los nombres de evaluación válidos se especifican en los archivos YAML en `evals/registry/evals`, y sus implementaciones correspondientes se pueden encontrar en `evals/elsuite`.
 
-These CLIs can accept various flags to modify their default behavior. For example:
-- If you wish to log to a Snowflake database (which you have already set up as described in the [README](../README.md)), add `--no-local-run`.
-- By default, logging locally or to Snowflake will write to `tmp/evallogs`, and you can change this by setting a different `--record_path`.
+Estos CLI pueden aceptar varios indicadores para modificar su comportamiento predeterminado. Por ejemplo:
+- Si desea iniciar sesión en una base de datos de Snowflake (que ya configuró como se describe en [README] (../README.md)), agregue `--no-local-run`.
+- De forma predeterminada, iniciar sesión localmente o en Snowflake escribirá en `tmp/evallogs`, y puede cambiar esto configurando un `--record_path` diferente.
 
-You can run `oaieval --help` to see a full list of CLI options.
+Puede ejecutar `oaieval --help` para ver una lista completa de opciones de CLI.
 
-## Running an eval set
-
-```sh
-oaievalset gpt-3.5-turbo test
-```
-
-Similarly, `oaievalset` also expects a model name and an eval set name, for which the valid options are specified in the YAML files under `evals/registry/eval_sets`.
-
-By default we run with 10 threads, and each thread times out and restarts after 40 seconds. You can configure this, e.g.,
+## Ejecutar un conjunto de evaluación
 
 ```sh
-EVALS_THREADS=42 EVALS_THREAD_TIMEOUT=600 oaievalset gpt-3.5-turbo test
+prueba oaievalset gpt-3.5-turbo
 ```
-Running with more threads will make the eval faster, though keep in mind the costs and your [rate limits](https://platform.openai.com/docs/guides/rate-limits/overview). Running with a higher thread timeout may be necessary if you expect each sample to take a long time, e.g., the data contain long prompts that elicit long responses from the model.
 
-If you have to stop your run or your run crashes, we've got you covered! `oaievalset` records the evals that finished in `/tmp/oaievalset/{model}.{eval_set}.progress.txt`. You can simply rerun the command to pick up where you left off. If you want to run the eval set starting from the beginning, delete this progress file.
+De manera similar, `oaievalset` también espera un nombre de modelo y un nombre de conjunto de evaluación, para los cuales las opciones válidas se especifican en los archivos YAML en `evals/registry/eval_sets`.
 
-Unfortunately, you can't resume a single eval from the middle. You'll have to restart from the beginning, so try to keep your individual evals quick to run.
+De forma predeterminada, ejecutamos con 10 subprocesos, y cada subproceso se agota y se reinicia después de 40 segundos. Puede configurar esto, por ejemplo,
+
+```sh
+EVALS_THREADS=42 EVALS_THREAD_TIMEOUT=600 prueba oaievalset gpt-3.5-turbo
+```
+Ejecutar con más subprocesos hará que la evaluación sea más rápida, aunque tenga en cuenta los costos y sus [límites de tasa] (https://platform.openai.com/docs/guides/rate-limits/overview). Puede ser necesario ejecutar con un tiempo de espera de subproceso más alto si espera que cada muestra tome mucho tiempo, por ejemplo, los datos contienen indicaciones largas que provocan respuestas largas del modelo.
+
+Si tiene que detener su carrera o se bloquea, ¡lo tenemos cubierto! `oaievalset` registra las evaluaciones que terminaron en `/tmp/oaievalset/{model}.{eval_set}.progress.txt`. Simplemente puede volver a ejecutar el comando para continuar donde lo dejó. Si desea ejecutar el conjunto de evaluación desde el principio, elimine este archivo de progreso.
+
+Desafortunadamente, no puede reanudar una sola evaluación desde el medio. Tendrá que reiniciar desde el principio, así que intente que sus evaluaciones individuales se ejecuten rápidamente.
